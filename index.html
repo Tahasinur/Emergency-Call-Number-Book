@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Hotline - Dynamic System</title>
+    <link rel="shortcut icon" href="./assets/logo.png" type="image/x-icon">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div id="main-content">
+        <!-- Content will be dynamically loaded here -->
+    </div>
+    
+    <script src="app.js"></script>
+    <script>
+        // Make app globally accessible for onclick handlers
+        let app;
+        document.addEventListener('DOMContentLoaded', () => {
+            app = new EmergencyApp();
+        });
+    </script>
+</body>
+</html>
