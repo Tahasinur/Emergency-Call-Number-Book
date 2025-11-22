@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Helper Dashboard - Emergency Hotline</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="bg-gray-50">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md fixed top-0 w-full z-50">
+        <div class="w-11/12 m-auto flex justify-between items-center py-4">
+            <div class="flex items-center gap-3">
+                <img src="/static/assets/logo.png" alt="Logo" class="h-10 w-10">
+                <h1 class="text-lg md:text-xl font-bold text-[#014e36]">Helper Dashboard</h1>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-xs md:text-sm text-gray-600 hidden sm:inline">Welcome, <strong id="helperName">Helper</strong></span>
+                <button id="logoutBtn" class="btn btn-sm bg-red-500 hover:bg-red-600 text-white rounded-full">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="logout-text hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="pt-24 pb-8">
+        <div class="w-full h-[calc(100vh-120px)] flex flex-col md:flex-row">
+            <!-- Left Panel - All Chats (Merged View) -->
+            <div class="w-full md:w-1/3 bg-white border-r border-gray-200 flex flex-col md:h-auto h-1/2">
+                <!-- Header -->
+                <div class="flex justify-between items-center px-4 py-3 border-b border-gray-200 bg-gray-50">
+                    <div>
+                        <h2 class="text-sm font-bold text-gray-800">
+                            <i class="fa-solid fa-comments text-[#00a63e] mr-2"></i>
+                            All Chats
+                        </h2>
+                        <p class="text-xs text-gray-500 mt-1">
+                            <span class="text-orange-600 font-semibold" id="waitingCount">0</span> waiting •
+                            <span class="text-green-600 font-semibold" id="activeCount">0</span> active
+                        </p>
+                    </div>
+                    <button id="refreshChatsBtn" class="btn btn-xs bg-blue-500 hover:bg-blue-600 text-white" title="Refresh chats">
+                        <i class="fa-solid fa-rotate-right"></i>
+                    </button>
+                </div>
+
+                <!-- All Chats List (Merged) -->
+                <div id="allChatsPanel" class="flex-1 overflow-y-auto">
+                    <div id="emptyChats" class="text-center py-12 hidden">
+                        <i class="fa-solid fa-inbox text-gray-300 text-5xl mb-3"></i>
+                        <p class="text-gray-500 text-sm">No chats available</p>
+                    </div>
+                    <div id="allChats" class="divide-y divide-gray-100">
+                        <!-- All chats will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel - Chat Area -->
+            <div class="flex-1 bg-gray-50 flex flex-col">
+                <!-- Empty State -->
+                <div id="emptyChatArea" class="flex-1 flex items-center justify-center">
+                    <div class="text-center">
+                        <i class="fa-solid fa-comments text-gray-300 text-6xl mb-4"></i>
+                        <p class="text-gray-500 text-lg font-semibold">Select a chat to start messaging</p>
+                        <p class="text-gray-400 text-sm mt-2">Choose a user from the left panel</p>
+                    </div>
+                </div>
+
+                <!-- Active Chat -->
+                <div id="activeChatArea" class="hidden flex-1 flex flex-col">
+                    <!-- Chat Header -->
+                    <div class="bg-white border-b border-gray-200 px-3 md:px-6 py-3 md:py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+                        <div class="flex items-center gap-3">
+                            <div class="avatar placeholder">
+                                <div class="bg-[#00a63e] text-white rounded-full w-10">
+                                    <span id="chatUserInitial">U</span>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-gray-800 text-sm md:text-base" id="chatUsername">User</h3>
+                                <p class="text-xs text-gray-500" id="chatStatus">Active</p>
+                            </div>
+                        </div>
+                        <div class="flex gap-2 w-full sm:w-auto">
+                            <!-- Conditional Button: Assign or Close -->
+                            <button id="assignBtn" class="btn btn-xs sm:btn-sm bg-[#00a63e] hover:bg-[#008c35] text-white hidden flex-1 sm:flex-none">
+                                <i class="fa-solid fa-user-check"></i>
+                                <span class="hidden sm:inline">Assign to Me</span>
+                            </button>
+                            <button id="closeSessionBtn" class="btn btn-xs sm:btn-sm btn-error text-white hidden flex-1 sm:flex-none">
+                                <i class="fa-solid fa-times"></i>
+                                <span class="inline">Close Session</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div id="chatMessages" class="flex-1 overflow-y-auto p-3 md:p-6 bg-gray-50">
+                        <!-- Messages will be loaded here -->
+                    </div>
+
+                    <!-- Typing Indicator -->
+                    <div id="typingIndicator" class="hidden px-3 md:px-6 py-2 bg-gray-50">
+                        <div class="flex items-center gap-2 text-gray-500 text-sm">
+                            <div class="flex gap-1">
+                                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+                                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+                                <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+                            </div>
+                            <span id="typingUsername">User</span> is typing...
+                        </div>
+                    </div>
+
+                    <!-- Chat Input (Hidden by default, shown only for assigned sessions) -->
+                    <div id="chatInputArea" class="bg-white border-t border-gray-200 p-3 md:p-4 hidden">
+                        <div class="flex gap-2">
+                            <input type="text" id="messageInput" placeholder="Type your message..." class="input input-bordered input-sm md:input-md w-full" />
+                            <button id="sendBtn" class="btn btn-sm md:btn-md bg-[#00a63e] text-white px-4 md:px-6">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Info message for unassigned chats -->
+                    <div id="assignInfoMessage" class="bg-gray-100 border-t border-gray-200 p-3 md:p-4 text-center hidden">
+                        <p class="text-gray-600 text-xs md:text-sm">
+                            <i class="fa-solid fa-info-circle mr-2"></i>
+                            Assign this chat to yourself to start messaging
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        // Check authentication and role
+        if (!requireAuth()) {
+            window.location.href = '/login';
+        }
+
+        const currentUser = getCurrentUser();
+        if (currentUser.role !== 'helper') {
+            alert('Access denied. Helper role required.');
+            window.location.href = '/login';
+        }
+
+        document.getElementById('helperName').textContent = currentUser.username;
+
+        // Show notification helper
+        function showNotification(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-orange-500'
+            };
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 ${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-fade-in`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // State variables + smart live refresh
+        let allChatsData = [];
+        let currentChatSessionId = null;
+        let currentChatUsername = '';
+
+        // Polling/backoff state
+        let chatsPollTimer = null;
+        let chatsPollInterval = 2000; // ms
+        const chatsPollMin = 1500, chatsPollMax = 10000;
+        let lastChatsSignature = '';
+        let inflightChatsReq = false;
+
+        let messagesPollTimer = null;
+        let messagesPollInterval = 1500; // ms
+        const messagesPollMin = 1000, messagesPollMax = 8000;
+        let lastMessageTimestamp = null; // ISO string of last message created_at
+        let lastMessagesSignature = '';
+    let inflightMessagesReq = false;
+    // Track which chat items are already rendered to avoid DOM refreshes
+    let renderedSessionIds = new Set();
+    // Track minimal metadata for rendered sessions to patch changes without re-rendering
+    let renderedSessionMeta = new Map(); // id -> { status, message_count, updated_at }
+
+    function updateActiveChatHighlight() {
+        const container = document.getElementById('allChats');
+        if (!container) return;
+        const nodes = container.children;
+        for (const el of nodes) {
+            const sid = parseInt(el.getAttribute('data-session-id'));
+            if (sid && sid === currentChatSessionId) {
+                el.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+            } else {
+                el.classList.remove('bg-blue-50', 'border-l-4', 'border-blue-500');
+            }
+        }
+    }
+
+        // Pause polling when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopChatsPolling();
+                stopMessagesPolling();
+            } else {
+                startChatsPolling();
+                if (currentChatSessionId) startMessagesPolling();
+            }
+        });
+
+        // Refresh button - works for both chat list and messages
+        document.getElementById('refreshChatsBtn').addEventListener('click', async function() {
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                // Always refresh the chat list
+                await loadAllChats();
+
+                // If a chat is open, also refresh its messages
+                if (currentChatSessionId) {
+                    await loadChatMessages();
+                    showNotification('Chats and messages refreshed', 'success');
+                } else {
+                    showNotification('Chats refreshed', 'success');
+                }
+            } catch (error) {
+                showNotification('Failed to refresh', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
+            }
+        });
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            await API.logout();
+        });
+
+        // Load all chats (waiting + active) in one merged view
+        async function loadAllChats() {
+            try {
+                if (inflightChatsReq) return;
+                inflightChatsReq = true;
+                // Fetch both waiting and active sessions in parallel
+                const [waitingSessions, activeSessions] = await Promise.all([
+                    API.getWaitingSessions().catch(() => []),
+                    API.getMySessions().catch(() => [])
+                ]);
+
+                // Merge and sort by timestamp
+                const allSessions = [
+                    ...waitingSessions.map(s => ({ ...s, status: 'waiting' })),
+                    ...activeSessions.map(s => ({ ...s, status: 'active' }))
+                ].sort((a, b) => new Date(b.updated_at || b.created_at) - new Date(a.updated_at || a.created_at));
+
+                const container = document.getElementById('allChats');
+                const emptyState = document.getElementById('emptyChats');
+                const waitingCountBadge = document.getElementById('waitingCount');
+                const activeCountBadge = document.getElementById('activeCount');
+
+                waitingCountBadge.textContent = waitingSessions.length;
+                activeCountBadge.textContent = activeSessions.length;
+
+                // Get current session IDs from API response
+                const currentSessionIds = new Set(allSessions.map(s => s.session_id));
+
+                // Remove deleted sessions from DOM
+                const deletedSessionIds = [];
+                renderedSessionIds.forEach(sessionId => {
+                    if (!currentSessionIds.has(sessionId)) {
+                        const node = container.querySelector(`[data-session-id="${sessionId}"]`);
+                        if (node) {
+                            node.remove();
+                        }
+                        deletedSessionIds.push(sessionId);
+                    }
+                });
+
+                // Clean up tracking sets/maps
+                deletedSessionIds.forEach(sessionId => {
+                    renderedSessionIds.delete(sessionId);
+                    renderedSessionMeta.delete(sessionId);
+                });
+
+                // Empty state visibility
+                if (allSessions.length === 0 && renderedSessionIds.size === 0) {
+                    emptyState.classList.remove('hidden');
+                } else {
+                    emptyState.classList.add('hidden');
+                }
+
+                // Append only new sessions
+                const newSessions = allSessions.filter(s => !renderedSessionIds.has(s.session_id));
+                if (newSessions.length > 0) {
+                    const frag = document.createDocumentFragment();
+                    newSessions.forEach(session => {
+                        const isWaiting = session.status === 'waiting';
+                        const statusColor = isWaiting ? 'orange' : 'green';
+                        const statusIcon = isWaiting ? 'fa-clock' : 'fa-comments';
+                        const statusText = isWaiting ? 'Waiting for help' : 'Active chat';
+                        const avatarColor = isWaiting ? 'bg-orange-500' : 'bg-green-500';
+
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'p-4 hover:bg-gray-50 cursor-pointer transition';
+                        if (currentChatSessionId === session.session_id) {
+                            wrapper.classList.add('bg-blue-50', 'border-l-4', 'border-blue-500');
+                        }
+                        wrapper.setAttribute('data-session-id', String(session.session_id));
+                        wrapper.setAttribute('data-username', session.username);
+
+                        // Use proper event listener instead of onclick attribute to prevent XSS
+                        wrapper.addEventListener('click', () => {
+                            if (isWaiting) {
+                                viewWaitingChat(session.session_id, session.username);
+                            } else {
+                                openChat(session.session_id, session.username);
+                            }
+                        });
+
+                        wrapper.innerHTML = `
+                            <div class="flex items-center gap-3">
+                                <div class="avatar placeholder">
+                                    <div class="${avatarColor} text-white rounded-full w-12 avatar-bg">
+                                        <span class="text-lg">${escapeHtml(session.username.charAt(0).toUpperCase())}</span>
+                                    </div>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-bold text-gray-800 truncate">${escapeHtml(session.username)}</h3>
+                                        <span class="text-xs text-gray-400 time-text">${new Date(session.created_at || session.updated_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</span>
+                                    </div>
+                                    <p class="status-line text-xs text-${statusColor}-600 font-semibold mt-1">
+                                        <i class="fa-solid ${statusIcon}"></i>
+                                        <span class="status-text">${statusText}</span>
+                                    </p>
+                                    ${session.message_count > 0 ? `
+                                        <p class="msg-count-line text-xs text-blue-600 font-semibold mt-1">
+                                            <i class="fa-solid fa-message"></i>
+                                            ${session.message_count} message${session.message_count > 1 ? 's' : ''}
+                                        </p>
+                                    ` : ''}
+                                </div>
+                            </div>`;
+                        frag.appendChild(wrapper);
+                        renderedSessionIds.add(session.session_id);
+                        renderedSessionMeta.set(session.session_id, {
+                            status: session.status,
+                            message_count: session.message_count || 0,
+                            updated_at: session.updated_at || session.created_at
+                        });
+                    });
+                    container.appendChild(frag);
+                    updateActiveChatHighlight();
+                    chatsPollInterval = chatsPollMin;
+                } else if (deletedSessionIds.length > 0) {
+                    // If sessions were deleted, reset interval
+                    chatsPollInterval = chatsPollMin;
+                } else {
+                    chatsPollInterval = Math.min(chatsPollMax, chatsPollInterval + 500);
+                }
+
+                // Patch existing session items if metadata changed (status/message_count/time)
+                for (const session of allSessions) {
+                    if (!renderedSessionIds.has(session.session_id)) continue;
+                    const prev = renderedSessionMeta.get(session.session_id) || {};
+                    const cur = {
+                        status: session.status,
+                        message_count: session.message_count || 0,
+                        updated_at: session.updated_at || session.created_at
+                    };
+                    const changed = prev.status !== cur.status || prev.message_count !== cur.message_count || prev.updated_at !== cur.updated_at;
+                    if (!changed) continue;
+
+                    const node = container.querySelector(`[data-session-id="${session.session_id}"]`);
+                    if (!node) continue;
+                    const isWaiting = session.status === 'waiting';
+                    const statusColor = isWaiting ? 'orange' : 'green';
+                    const statusIcon = isWaiting ? 'fa-clock' : 'fa-comments';
+                    const statusText = isWaiting ? 'Waiting for help' : 'Active chat';
+
+                    // Update avatar color
+                    const avatarBg = node.querySelector('.avatar-bg');
+                    if (avatarBg) {
+                        avatarBg.classList.remove('bg-orange-500', 'bg-green-500');
+                        avatarBg.classList.add(isWaiting ? 'bg-orange-500' : 'bg-green-500');
+                    }
+
+                    // Update time
+                    const timeEl = node.querySelector('.time-text');
+                    if (timeEl) {
+                        timeEl.textContent = new Date(cur.updated_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'});
+                    }
+
+                    // Update status line
+                    const statusLine = node.querySelector('.status-line');
+                    if (statusLine) {
+                        statusLine.className = `status-line text-xs text-${statusColor}-600 font-semibold mt-1`;
+                        statusLine.innerHTML = `<i class="fa-solid ${statusIcon}"></i> <span class="status-text">${statusText}</span>`;
+                    }
+
+                    // Update message count line
+                    const msgLine = node.querySelector('.msg-count-line');
+                    if (cur.message_count > 0) {
+                        if (msgLine) {
+                            msgLine.innerHTML = `<i class="fa-solid fa-message"></i> ${cur.message_count} message${cur.message_count > 1 ? 's' : ''}`;
+                        } else {
+                            const details = node.querySelector('.flex-1.min-w-0');
+                            if (details) {
+                                const p = document.createElement('p');
+                                p.className = 'msg-count-line text-xs text-blue-600 font-semibold mt-1';
+                                p.innerHTML = `<i class="fa-solid fa-message"></i> ${cur.message_count} message${cur.message_count > 1 ? 's' : ''}`;
+                                details.appendChild(p);
+                            }
+                        }
+                    } else if (msgLine) {
+                        msgLine.remove();
+                    }
+
+                    renderedSessionMeta.set(session.session_id, cur);
+                }
+            } catch (error) {
+                console.error('Error loading all chats:', error);
+                showNotification('Failed to load chats', 'error');
+            } finally {
+                inflightChatsReq = false;
+            }
+        }
+
+        function startChatsPolling() {
+            if (chatsPollTimer) return;
+            const tick = async () => {
+                try { await loadAllChats(); } catch {}
+                chatsPollTimer = setTimeout(tick, chatsPollInterval);
+            };
+            chatsPollTimer = setTimeout(tick, 300);
+        }
+        function stopChatsPolling() {
+            if (!chatsPollTimer) return;
+            clearTimeout(chatsPollTimer);
+            chatsPollTimer = null;
+        }
+
+        // View waiting chat (before assignment)
+        window.viewWaitingChat = async function(sessionId, username) {
+            try {
+                // Load messages first
+                const messages = await API.getMessages(sessionId);
+
+                // Show chat in right panel
+                document.getElementById('emptyChatArea').classList.add('hidden');
+                document.getElementById('activeChatArea').classList.remove('hidden');
+
+                currentChatSessionId = sessionId;
+                currentChatUsername = username;
+
+                document.getElementById('chatUsername').textContent = username;
+                document.getElementById('chatUserInitial').textContent = username.charAt(0).toUpperCase();
+                document.getElementById('chatStatus').textContent = 'Waiting for assignment';
+
+                // Show "Assign to Me" button, hide "Close Session" button
+                document.getElementById('assignBtn').classList.remove('hidden');
+                document.getElementById('closeSessionBtn').classList.add('hidden');
+
+                // Hide message input, show info message
+                document.getElementById('chatInputArea').classList.add('hidden');
+                document.getElementById('assignInfoMessage').classList.remove('hidden');
+
+                // Display messages
+                displayMessages(messages);
+                // Start polling messages for this session
+                stopMessagesPolling();
+                updateActiveChatHighlight();
+                startMessagesPolling();
+
+            } catch (error) {
+                console.error('Error viewing chat:', error);
+            }
+        };
+
+        // Assign button click handler
+        document.getElementById('assignBtn').addEventListener('click', async function() {
+            if (!currentChatSessionId) return;
+
+            try {
+                await API.assignSession(currentChatSessionId);
+                showNotification('Session assigned successfully!', 'success');
+
+                // Update status in the chat header
+                document.getElementById('chatStatus').textContent = 'Active';
+
+                // Switch buttons: hide assign, show close
+                document.getElementById('assignBtn').classList.add('hidden');
+                document.getElementById('closeSessionBtn').classList.remove('hidden');
+
+                // Show message input, hide info message
+                document.getElementById('chatInputArea').classList.remove('hidden');
+                document.getElementById('assignInfoMessage').classList.add('hidden');
+
+                // Reload messages
+                await loadChatMessages();
+
+                // Reload the merged chats list
+                await loadAllChats();
+
+            } catch (error) {
+                console.error('Error assigning session:', error);
+                showNotification('Failed to assign session', 'error');
+            }
+        });
+
+        // Open chat (assigned session)
+        window.openChat = async function(sessionId, username) {
+            currentChatSessionId = sessionId;
+            currentChatUsername = username;
+
+            document.getElementById('emptyChatArea').classList.add('hidden');
+            document.getElementById('activeChatArea').classList.remove('hidden');
+
+            document.getElementById('chatUsername').textContent = username;
+            document.getElementById('chatUserInitial').textContent = username.charAt(0).toUpperCase();
+            document.getElementById('chatStatus').textContent = 'Active';
+
+            // Show "Close Session" button, hide "Assign to Me" button
+            document.getElementById('assignBtn').classList.add('hidden');
+            document.getElementById('closeSessionBtn').classList.remove('hidden');
+
+            // Show message input, hide info message (it's an assigned session)
+            document.getElementById('chatInputArea').classList.remove('hidden');
+            document.getElementById('assignInfoMessage').classList.add('hidden');
+
+            // Reset signature when switching chats
+            lastMessagesSignature = '';
+            await loadChatMessages();
+            await loadAllChats(); // Refresh counts; list won't refresh existing items
+            // Start/Restart messages polling
+            stopMessagesPolling();
+            lastMessagesSignature = '';
+            startMessagesPolling();
+            updateActiveChatHighlight();
+        };
+
+    // Display messages (full list)
+    function displayMessages(messagesData) {
+            const container = document.getElementById('chatMessages');
+            const messages = Array.isArray(messagesData) ? messagesData : (messagesData.messages || []);
+
+            if (!messages || messages.length === 0) {
+                container.innerHTML = '<div class="text-center text-gray-400 py-8">No messages yet. Start the conversation!</div>';
+                return;
+            }
+
+            container.innerHTML = messages.map((msg) => {
+                const isOwn = msg.sender_id === currentUser.user_id;
+                return `
+                    <div class="flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3">
+                        <div class="max-w-[85%] md:max-w-[70%] ${isOwn ? 'bg-[#00a63e] text-white' : 'bg-white border border-gray-200'} rounded-lg px-3 md:px-4 py-2 shadow-sm transition-all hover:shadow-md">
+                            <p class="text-xs font-semibold mb-1 ${isOwn ? 'text-green-100' : 'text-gray-600'}">${msg.sender_name}</p>
+                            <p class="text-xs md:text-sm break-words">${escapeHtml(msg.message)}</p>
+                            <p class="text-xs opacity-70 mt-1">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</p>
+                        </div>
+                    </div>
+                `;
+                }).join('');
+
+            // Always scroll to bottom
+            setTimeout(() => {
+                container.scrollTop = container.scrollHeight;
+            }, 50);
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+    // Load chat messages (full list + backoff)
+        async function loadChatMessages() {
+            if (!currentChatSessionId) {
+                return;
+            }
+
+            try {
+                const data = await API.getMessages(currentChatSessionId);
+                const messages = data.messages || data;
+                // Signature = count + last timestamp
+                const sig = (() => {
+                    if (!Array.isArray(messages) || messages.length === 0) return `0-none`;
+                    const last = messages[messages.length - 1];
+                    return `${messages.length}-${last.created_at}`;
+                })();
+
+                if (sig === lastMessagesSignature) {
+                    messagesPollInterval = Math.min(messagesPollMax, messagesPollInterval + 500);
+                } else {
+                    messagesPollInterval = messagesPollMin;
+                    lastMessagesSignature = sig;
+                }
+
+                displayMessages(messages);
+
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                showNotification('Failed to load messages', 'error');
+            }
+        }
+
+        function startMessagesPolling() {
+            if (messagesPollTimer || !currentChatSessionId) return;
+            const tick = async () => {
+                if (inflightMessagesReq) { messagesPollTimer = setTimeout(tick, messagesPollInterval); return; }
+                try {
+                    inflightMessagesReq = true;
+                    await loadChatMessages();
+                } finally {
+                    inflightMessagesReq = false;
+                    messagesPollTimer = setTimeout(tick, messagesPollInterval);
+                }
+            };
+            messagesPollTimer = setTimeout(tick, 300);
+        }
+        function stopMessagesPolling() {
+            if (!messagesPollTimer) return;
+            clearTimeout(messagesPollTimer);
+            messagesPollTimer = null;
+        }
+
+        // Send message
+        document.getElementById('sendBtn').addEventListener('click', async () => {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || !currentChatSessionId) return;
+
+            try {
+                await API.sendMessage(currentChatSessionId, message);
+                input.value = '';
+                // After sending, force quick refresh and reset backoff
+                messagesPollInterval = messagesPollMin;
+                await loadChatMessages();
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Failed to send message', 'error');
+            }
+        });
+
+        // Send on Enter key
+        document.getElementById('messageInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('sendBtn').click();
+            }
+        });
+
+        // Close session
+        document.getElementById('closeSessionBtn').addEventListener('click', async () => {
+            if (!currentChatSessionId) return;
+
+            if (!confirm('Are you sure you want to close this chat session? This will permanently delete the session and all messages.')) return;
+
+            // Store the session ID before clearing it
+            const sessionIdToClose = currentChatSessionId;
+
+            try {
+                await API.closeSession(sessionIdToClose);
+                showNotification('Session closed and deleted successfully', 'success');
+
+                // Hide chat area
+                document.getElementById('activeChatArea').classList.add('hidden');
+                document.getElementById('emptyChatArea').classList.remove('hidden');
+                document.getElementById('chatMessages').innerHTML = '';
+                currentChatSessionId = null;
+                currentChatUsername = '';
+                stopMessagesPolling();
+                lastMessagesSignature = '';
+
+                // Proactively remove the closed chat item from DOM
+                const listContainer = document.getElementById('allChats');
+                const node = listContainer.querySelector(`[data-session-id="${sessionIdToClose}"]`);
+                if (node) node.remove();
+                renderedSessionIds.delete(sessionIdToClose);
+                renderedSessionMeta.delete(sessionIdToClose);
+
+                // Reload the merged list to ensure consistency
+                await loadAllChats();
+                updateActiveChatHighlight();
+            } catch (error) {
+                console.error('Error closing session:', error);
+                showNotification('Failed to close session', 'error');
+            }
+        });
+
+    // Initialize - load all chats and start polling
+    loadAllChats().finally(() => startChatsPolling());
+    </script>
+</body>
+</html>

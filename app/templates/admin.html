@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Emergency Hotline</title>
+    <link rel="shortcut icon" href="/static/assets/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+</head>
+<body class="bg-gray-100">
+    <!-- Header -->
+    <header class="bg-white shadow-md sticky top-0 z-10">
+        <div class="flex justify-between items-center py-4 px-4 md:px-6">
+            <div class="flex items-center gap-3">
+                <button id="sidebarToggle" class="btn btn-sm btn-ghost lg:hidden">
+                    <i class="fas fa-bars text-xl"></i>
+                </button>
+                <img src="/static/assets/logo.png" alt="Logo" class="h-10 w-10">
+                <div>
+                    <h1 class="text-lg font-bold text-[#014e36]">Emergency Hotline</h1>
+                    <p class="text-xs text-gray-600">Admin Dashboard</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="text-sm text-gray-600 hidden sm:inline">Welcome, <strong id="adminName">Admin</strong></span>
+                <button id="logoutBtn" class="btn btn-sm bg-red-500 hover:bg-red-600 text-white">
+                    <i class="fas fa-sign-out-alt"></i> <span class="hidden sm:inline">Logout</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex h-[calc(100vh-73px)]">
+        <!-- Sidebar -->
+        <aside id="sidebar" class="bg-white shadow-lg w-64 fixed lg:static h-full z-20 transform -translate-x-full lg:translate-x-0 transition-transform duration-300">
+            <div class="p-4">
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-2 gap-3 mb-6">
+                    <div class="bg-green-50 p-3 rounded-lg border border-green-200">
+                        <p class="text-xs text-gray-600">Services</p>
+                        <p id="totalServices" class="text-2xl font-bold text-[#00a63e]">0</p>
+                    </div>
+                    <div class="bg-blue-50 p-3 rounded-lg border border-blue-200">
+                        <p class="text-xs text-gray-600">Active</p>
+                        <p id="activeServices" class="text-2xl font-bold text-blue-600">0</p>
+                    </div>
+                    <div class="bg-purple-50 p-3 rounded-lg border border-purple-200">
+                        <p class="text-xs text-gray-600">Users</p>
+                        <p id="totalUsers" class="text-2xl font-bold text-purple-600">0</p>
+                    </div>
+                    <div class="bg-orange-50 p-3 rounded-lg border border-orange-200">
+                        <p class="text-xs text-gray-600">Categories</p>
+                        <p id="totalCategories" class="text-2xl font-bold text-orange-600">0</p>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <nav class="space-y-2">
+                    <button onclick="showSection('services')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition active" data-section="services">
+                        <i class="fas fa-hospital text-[#00a63e]"></i>
+                        <span class="font-medium">Emergency Services</span>
+                    </button>
+                    <button onclick="showSection('users')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition" data-section="users">
+                        <i class="fas fa-users text-purple-600"></i>
+                        <span class="font-medium">User Management</span>
+                    </button>
+                    <button onclick="showSection('calls')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-lg hover:bg-gray-100 transition" data-section="calls">
+                        <i class="fas fa-phone text-blue-600"></i>
+                        <span class="font-medium">Call History</span>
+                    </button>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Overlay for mobile -->
+        <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-50 z-10 hidden lg:hidden"></div>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto p-4 md:p-6">
+            <!-- Emergency Services Section -->
+            <div id="servicesSection" class="content-section">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-hospital text-[#00a63e] mr-2"></i>
+                        Emergency Services
+                    </h2>
+                    <button id="addServiceBtn" class="btn btn-sm md:btn-md bg-[#00a63e] hover:bg-[#008c35] text-white">
+                        <i class="fas fa-plus"></i> <span class="hidden sm:inline">Add New Service</span><span class="inline sm:hidden">Add</span>
+                    </button>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                    <div id="loadingServices" class="p-8 text-center">
+                        <i class="fas fa-spinner fa-spin text-3xl text-[#00a63e]"></i>
+                        <p class="mt-2 text-gray-600">Loading services...</p>
+                    </div>
+
+                    <table id="servicesTable" class="w-full hidden min-w-[640px]">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service Name</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Phone</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Category</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Description</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="servicesTableBody" class="divide-y divide-gray-200">
+                            <!-- Services will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- User Management Section -->
+            <div id="usersSection" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-users text-purple-600 mr-2"></i>
+                    User Management
+                </h2>
+
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto">
+                    <div id="loadingUsers" class="p-8 text-center">
+                        <i class="fas fa-spinner fa-spin text-3xl text-[#00a63e]"></i>
+                        <p class="mt-2 text-gray-600">Loading users...</p>
+                    </div>
+
+                    <table id="usersTable" class="w-full hidden min-w-[640px]">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Username</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Email</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Role</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden lg:table-cell">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody id="usersTableBody" class="divide-y divide-gray-200">
+                            <!-- Users will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Call History Section -->
+            <div id="callsSection" class="content-section hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">
+                    <i class="fas fa-phone text-blue-600 mr-2"></i>
+                    Call History
+                </h2>
+
+                <div class="bg-white rounded-lg shadow-md overflow-x-auto p-4">
+                    <div class="mb-4 flex items-center gap-2">
+                        <input id="callFilterUser" type="text" placeholder="Filter by username or user_id" class="input input-sm input-bordered" />
+                        <button id="filterCallsBtn" class="btn btn-sm">Filter</button>
+                        <button id="refreshCallsBtn" class="btn btn-sm btn-ghost">Refresh</button>
+                    </div>
+
+                    <div id="loadingCalls" class="p-8 text-center">
+                        <i class="fas fa-spinner fa-spin text-3xl text-blue-600"></i>
+                        <p class="mt-2 text-gray-600">Loading call history...</p>
+                    </div>
+
+                    <table id="callsTable" class="w-full hidden min-w-[720px]">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Call ID</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Service</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Caller</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Receiver</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Duration</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">When</th>
+                                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody id="callsTableBody" class="divide-y divide-gray-200">
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add/Edit Service Modal -->
+    <dialog id="serviceModal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl">
+            <h3 class="font-bold text-lg mb-4" id="modalTitle">Add New Service</h3>
+
+            <form id="serviceForm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Service Name *</label>
+                        <input type="text" id="serviceName" class="input input-bordered w-full" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Phone Number *</label>
+                        <input type="text" id="servicePhone" class="input input-bordered w-full" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Category *</label>
+                        <input type="text" id="serviceCategory" class="input input-bordered w-full" required>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Description</label>
+                        <textarea id="serviceDescription" class="textarea textarea-bordered w-full" rows="3"></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium mb-2">Service Image</label>
+                        <input type="file" id="serviceImage" accept="image/*" class="file-input file-input-bordered w-full">
+                        <p class="text-xs text-gray-500 mt-1">Upload an image for this service (PNG, JPG, SVG supported)</p>
+                        <div id="imagePreview" class="mt-2 hidden">
+                            <img id="previewImg" src="" alt="Preview" class="w-24 h-24 object-contain border border-gray-200 rounded-lg p-2">
+                        </div>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="flex items-center gap-2">
+                            <input type="checkbox" id="serviceActive" class="checkbox checkbox-success" checked>
+                            <span class="text-sm font-medium">Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-action">
+                    <button type="button" class="btn" onclick="serviceModal.close()">Cancel</button>
+                    <button type="submit" class="btn bg-[#00a63e] text-white">Save Service</button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop"><button>close</button></form>
+    </dialog>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        // Check authentication and admin role
+        if (!isAuthenticated() || !isAdmin()) {
+            window.location.href = '/login';
+        }
+
+        let services = [];
+        let currentEditId = null;
+        let currentImageFile = null;
+
+        // Image preview handler
+        document.getElementById('serviceImage').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                currentImageFile = file;
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    document.getElementById('previewImg').src = event.target.result;
+                    document.getElementById('imagePreview').classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            } else {
+                currentImageFile = null;
+                document.getElementById('imagePreview').classList.add('hidden');
+            }
+        });
+
+        // Sidebar toggle for mobile
+        document.getElementById('sidebarToggle').addEventListener('click', () => {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            sidebar.classList.toggle('-translate-x-full');
+            overlay.classList.toggle('hidden');
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', () => {
+            document.getElementById('sidebar').classList.add('-translate-x-full');
+            document.getElementById('sidebarOverlay').classList.add('hidden');
+        });
+
+        // Section navigation
+        window.showSection = function(section) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(s => s.classList.add('hidden'));
+
+            // Remove active state from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active', 'bg-green-50'));
+
+            // Show selected section
+            if (section === 'services') {
+                document.getElementById('servicesSection').classList.remove('hidden');
+            } else if (section === 'users') {
+                document.getElementById('usersSection').classList.remove('hidden');
+            } else if (section === 'calls') {
+                document.getElementById('callsSection').classList.remove('hidden');
+                // load call history when the section is shown
+                try {
+                    loadCallHistory(document.getElementById('callFilterUser').value);
+                } catch (e) {
+                    // ignore if loadCallHistory isn't defined yet
+                }
+            }
+
+            // Add active state to current nav item
+            document.querySelector(`[data-section="${section}"]`).classList.add('active', 'bg-green-50');
+
+            // Close mobile sidebar
+            if (window.innerWidth < 1024) {
+                document.getElementById('sidebar').classList.add('-translate-x-full');
+                document.getElementById('sidebarOverlay').classList.add('hidden');
+            }
+        };
+
+        // Load user count
+        async function loadUserCount() {
+            try {
+                const data = await API.getUsersCount();
+                document.getElementById('totalUsers').textContent = data.total_users || 0;
+            } catch (error) {
+                console.error('Error loading user count:', error);
+            }
+        }
+
+        // Load services
+        async function loadServices() {
+            try {
+                services = await API.getAllServicesAdmin();
+
+                const tbody = document.getElementById('servicesTableBody');
+                tbody.innerHTML = services.map(service => `
+                    <tr>
+                        <td class="px-4 py-3 text-sm font-medium">${service.service_name}</td>
+                        <td class="px-4 py-3 text-sm">${service.phone_number}</td>
+                        <td class="px-4 py-3 hidden sm:table-cell"><span class="badge badge-sm">${service.category}</span></td>
+                        <td class="px-4 py-3 text-sm hidden lg:table-cell">${service.description || '-'}</td>
+                        <td class="px-4 py-3">
+                            <span class="badge badge-sm ${service.is_active ? 'badge-success' : 'badge-error'}">
+                                ${service.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex gap-1">
+                                <button onclick="editService(${service.contact_id})" class="btn btn-xs btn-ghost text-blue-600">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="deleteService(${service.contact_id})" class="btn btn-xs btn-ghost text-red-600">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `).join('');
+
+                // Update stats
+                document.getElementById('totalServices').textContent = services.length;
+                document.getElementById('activeServices').textContent = services.filter(s => s.is_active).length;
+                document.getElementById('totalCategories').textContent = new Set(services.map(s => s.category)).size;
+
+                document.getElementById('loadingServices').style.display = 'none';
+                document.getElementById('servicesTable').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading services:', error);
+                showNotification('Failed to load services', 'error');
+            }
+        }
+
+        // Add service
+        document.getElementById('addServiceBtn').addEventListener('click', () => {
+            currentEditId = null;
+            currentImageFile = null;
+            document.getElementById('modalTitle').textContent = 'Add New Service';
+            document.getElementById('serviceForm').reset();
+            document.getElementById('serviceActive').checked = true;
+            document.getElementById('imagePreview').classList.add('hidden');
+            serviceModal.showModal();
+        });
+
+        // Edit service
+        window.editService = function(id) {
+            const service = services.find(s => s.contact_id === id);
+            if (!service) return;
+
+            currentEditId = id;
+            currentImageFile = null;
+            document.getElementById('modalTitle').textContent = 'Edit Service';
+            document.getElementById('serviceName').value = service.service_name;
+            document.getElementById('servicePhone').value = service.phone_number;
+            document.getElementById('serviceCategory').value = service.category;
+            document.getElementById('serviceDescription').value = service.description || '';
+            document.getElementById('serviceActive').checked = service.is_active;
+
+            // Show existing image if available
+            if (service.image_path) {
+                document.getElementById('previewImg').src = service.image_path;
+                document.getElementById('imagePreview').classList.remove('hidden');
+            } else {
+                document.getElementById('imagePreview').classList.add('hidden');
+            }
+
+            serviceModal.showModal();
+        };
+
+        // Save service
+        document.getElementById('serviceForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('service_name', document.getElementById('serviceName').value);
+            formData.append('phone_number', document.getElementById('servicePhone').value);
+            formData.append('category', document.getElementById('serviceCategory').value);
+            formData.append('description', document.getElementById('serviceDescription').value);
+            formData.append('is_active', document.getElementById('serviceActive').checked ? 1 : 0);
+
+            // Add image file if selected
+            if (currentImageFile) {
+                formData.append('image', currentImageFile);
+            }
+
+            try {
+                if (currentEditId) {
+                    await API.updateServiceWithImage(currentEditId, formData);
+                    showNotification('Service updated successfully', 'success');
+                } else {
+                    await API.createServiceWithImage(formData);
+                    showNotification('Service created successfully', 'success');
+                }
+
+                serviceModal.close();
+                await loadServices();
+            } catch (error) {
+                console.error('Error saving service:', error);
+                showNotification('Failed to save service', 'error');
+            }
+        });
+
+        // Delete service
+        window.deleteService = async function(id) {
+            if (!confirm('Are you sure you want to delete this service?')) return;
+
+            try {
+                await API.deleteService(id);
+                showNotification('Service deleted successfully', 'success');
+                await loadServices();
+            } catch (error) {
+                console.error('Error deleting service:', error);
+                showNotification('Failed to delete service', 'error');
+            }
+        };
+
+        // Load users
+        async function loadUsers() {
+            try {
+                const users = await API.getAllUsers();
+                const tbody = document.getElementById('usersTableBody');
+
+                tbody.innerHTML = users.map(user => `
+                    <tr>
+                        <td class="px-4 py-3 text-sm font-medium">${user.username}</td>
+                        <td class="px-4 py-3 text-sm hidden md:table-cell">${user.email}</td>
+                        <td class="px-4 py-3">
+                            <select
+                                class="select select-sm select-bordered"
+                                onchange="updateUserRole(${user.user_id}, this.value)"
+                                ${user.user_id === getCurrentUser().user_id ? 'disabled' : ''}
+                            >
+                                <option value="user" ${user.role === 'user' ? 'selected' : ''}>User</option>
+                                <option value="helper" ${user.role === 'helper' ? 'selected' : ''}>Helper</option>
+                                <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>Admin</option>
+                            </select>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="badge badge-sm ${user.is_active ? 'badge-success' : 'badge-error'}">
+                                ${user.is_active ? 'Active' : 'Inactive'}
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-sm hidden lg:table-cell">${formatDate(user.created_at)}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('loadingUsers').style.display = 'none';
+                document.getElementById('usersTable').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading users:', error);
+                showNotification('Failed to load users', 'error');
+            }
+        }
+
+        // Load call history for admin
+        async function loadCallHistory(filterUser) {
+            try {
+                const params = {};
+                if (filterUser) {
+                    // try to use numeric user_id if provided
+                    const id = parseInt(filterUser);
+                    if (!Number.isNaN(id)) params.user_id = id;
+                }
+
+                const calls = await API.getAllCalls(params);
+
+                const tbody = document.getElementById('callsTableBody');
+                tbody.innerHTML = calls.map(c => `
+                    <tr>
+                        <td class="px-4 py-3 text-sm font-medium">${c.call_id}</td>
+                        <td class="px-4 py-3 text-sm">${c.user_username || c.user_id || '-'}</td>
+                        <td class="px-4 py-3 text-sm">${c.service_name || '-'}</td>
+                        <td class="px-4 py-3 text-sm">${c.caller_number || '-'}</td>
+                        <td class="px-4 py-3 text-sm">${c.receiver_number || '-'}</td>
+                        <td class="px-4 py-3 text-sm">${c.duration_seconds != null ? c.duration_seconds + 's' : '-'}</td>
+                        <td class="px-4 py-3 text-sm">${formatDate(c.created_at)}</td>
+                        <td class="px-4 py-3 text-sm">${c.notes || '-'}</td>
+                    </tr>
+                `).join('');
+
+                document.getElementById('loadingCalls').style.display = 'none';
+                document.getElementById('callsTable').classList.remove('hidden');
+            } catch (error) {
+                console.error('Error loading calls:', error);
+                showNotification('Failed to load call history', 'error');
+            }
+        }
+
+        document.getElementById('refreshCallsBtn').addEventListener('click', () => loadCallHistory(document.getElementById('callFilterUser').value));
+        document.getElementById('filterCallsBtn').addEventListener('click', () => loadCallHistory(document.getElementById('callFilterUser').value));
+
+        // Update user role
+        window.updateUserRole = async function(userId, newRole) {
+            try {
+                await API.updateUserRole(userId, newRole);
+                showNotification('User role updated successfully', 'success');
+                await loadUserCount();
+            } catch (error) {
+                console.error('Error updating user role:', error);
+                showNotification('Failed to update user role', 'error');
+                await loadUsers();
+            }
+        };
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async () => {
+            if (confirm('Are you sure you want to logout?')) {
+                await API.logout();
+            }
+        });
+
+        // Set admin name
+        const user = getCurrentUser();
+        if (user) {
+            document.getElementById('adminName').textContent = user.username;
+        }
+
+        // Initialize
+        loadServices();
+        loadUserCount();
+        loadUsers();
+    </script>
+
+    <style>
+        .nav-item.active {
+            background-color: #ecfff0;
+            color: #014e36;
+            font-weight: 600;
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Emergency Hotline - Dashboard</title>
+    <link rel="shortcut icon" href="/static/assets/logo.png" type="image/x-icon">
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
+    <style>
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5fff6;
+        }
+        @keyframes heartBeat {
+            0%, 100% { transform: scale(1); }
+            25% { transform: scale(1.3); }
+            50% { transform: scale(1.1); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <!-- navbar start here -->
+    <nav class="flex justify-between items-center w-11/12 m-auto mt-3 transition-all duration-300 max-md:flex-col max-md:gap-3">
+      <div class="flex justify-center items-center gap-2">
+        <img class="h-[50px] w-[50px]" src="/static/assets/logo.png" alt="Emergency Service Logo" />
+        <h1 class="font-extrabold text-[#014e36] text-[17px]">
+          Emergency <br />
+          Service
+        </h1>
+      </div>
+
+            <div class="flex flex-wrap gap-3 items-center justify-center max-md:w-full max-md:justify-between max-md:flex-nowrap">
+        <span class="text-xs md:text-sm text-gray-600 hidden sm:inline">Welcome, <strong id="userName">User</strong></span>
+        <button id="logoutBtn" class="btn bg-red-500 hover:bg-red-600 text-white h-[45px] max-md:min-w-0 max-md:px-3 max-md:text-xs [&_.logout-text]:max-md:hidden">
+            <i class="fas fa-sign-out-alt"></i> <span class="logout-text">Logout</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- hero-section-start -->
+    <div class="bg-gradient-to-r from-[#065f46] via-[#065F2E] to-[#065f46] w-full flex flex-col justify-center items-center mt-5 py-8 p-4 text-center shadow-[0_4px_6px_rgba(0,0,0,0.1)] max-md:[&_h1]:text-2xl max-md:[&_p]:text-sm max-md:[&_p]:px-4">
+        <img class="h-[70px] w-[70px] mt-5" src="/static/assets/logo.png" alt="Emergency Service Logo">
+        <h1 class="md:text-[30px] text-[20px] text-white font-semibold">Emergency Service Directory</h1>
+        <p class="text-white mb-5 text-center px-4">Government Emergency Services at Your Fingertip</p>
+    </div>
+
+    <!-- main-section-startHere -->
+    <div class="bg-[#f5fff6]">
+        <main class="w-11/12 m-auto grid grid-cols-1 md:grid-cols-12 gap-5 pt-8 pb-10">
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="md:col-span-9 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6 mb-8 max-md:grid-cols-1 max-md:gap-4 md:max-lg:grid-cols-2">
+                <div class="col-span-full text-center py-10">
+                    <i class="fas fa-spinner fa-spin text-4xl text-green-600"></i>
+                    <p class="mt-4 text-gray-600">Loading emergency services...</p>
+                </div>
+            </div>
+
+            <!-- Services Grid (dynamically loaded) -->
+            <aside id="servicesGrid" class="md:col-span-9 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6 mb-8 max-md:grid-cols-1 max-md:gap-4 md:max-lg:grid-cols-2 hidden">
+                <!-- Services will be loaded here dynamically -->
+            </aside>
+
+            <!-- No Results Message -->
+            <div id="noResults" class="md:col-span-9 hidden">
+                <div class="text-center py-10 bg-white rounded-lg shadow-md">
+                    <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                    <p class="text-gray-600 text-lg">No services found matching your search</p>
+                </div>
+            </div>
+
+            <!-- Chat with Helper -->
+            <div class="col-span-3 bg-white rounded-xl p-6 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] sticky top-4 max-h-[calc(100vh-2rem)] overflow-y-auto [&::-webkit-scrollbar]:w-[2px] [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-track]:rounded-[10px] [&::-webkit-scrollbar-thumb]:bg-[#00a63e] [&::-webkit-scrollbar-thumb]:rounded-[10px] [&::-webkit-scrollbar-thumb:hover]:bg-[#014e36] max-md:relative max-md:mt-4 max-md:max-h-[400px]">
+                <div class="flex justify-between items-center mb-4 pb-4 border-b-2 border-gray-100">
+                    <div class="flex justify-center items-center gap-2">
+                        <i class="fa-solid fa-comments text-[#00a63e]"></i>
+                        <h1 class="font-bold">Chat with Helper</h1>
+                    </div>
+                    <button id="startChatBtn" class="btn text-white rounded-[50px] text-center bg-[#00a63e] w-[105px] h-[30px] text-xs">New Chat</button>
+                </div>
+
+                <div id="chat-section">
+                    <!-- Chat History View (Default) -->
+                    <div id="chatHistoryView">
+                        <div class="text-center py-12 px-4 text-gray-400 [&_i]:text-5xl [&_i]:mb-4 [&_i]:opacity-50" id="emptyChatHistory">
+                            <i class="fa-solid fa-message"></i>
+                            <p>No chat history yet</p>
+                        </div>
+
+                        <div id="chatHistoryList" class="hidden flex flex-col gap-2">
+                            <!-- Chat history items will be loaded here -->
+                        </div>
+                    </div>
+
+                    <!-- Active Chat Interface (Hidden by default) -->
+                    <div id="activeChatInterface" class="hidden">
+                        <div class="flex justify-between items-center mb-3 p-2 bg-gray-100 rounded">
+                            <div class="text-xs text-gray-600" id="chatStatus">Starting chat...</div>
+                            <div class="flex gap-1">
+                                <button id="refreshMessagesBtn" class="btn btn-xs bg-blue-500 hover:bg-blue-600 text-white" title="Refresh messages">
+                                    <i class="fa-solid fa-rotate-right"></i>
+                                </button>
+                                <button id="backToChatHistory" class="btn btn-xs btn-ghost">
+                                    <i class="fa-solid fa-arrow-left"></i> Back
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Chat Messages Container -->
+                        <div id="chatMessages" class="flex flex-col gap-2 mb-3 max-h-[350px] overflow-y-auto bg-gray-50 p-3 rounded">
+                            <!-- Messages will be loaded here -->
+                        </div>
+
+                        <!-- Chat Input -->
+                        <div id="chatInput">
+                            <div class="flex gap-2 mb-2">
+                                <input type="text" id="messageInput" placeholder="Type your message..." class="input input-bordered input-sm w-full text-sm" />
+                                <button id="sendBtn" class="btn btn-sm bg-[#00a63e] text-white"><i class="fa-solid fa-paper-plane"></i></button>
+                            </div>
+                            <div class="flex justify-end gap-2">
+                                <button id="endChatBtn" class="btn btn-xs btn-error text-white">
+                                    <i class="fa-solid fa-times"></i> End Chat
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/api.js"></script>
+    <script>
+        // Check authentication
+        if (!isAuthenticated()) {
+            window.location.href = '/login';
+        }
+
+        const currentUser = getCurrentUser();
+        document.getElementById('userName').textContent = currentUser.username;
+
+        let allServices = [];
+        let favorites = new Set();
+
+        // Load favorites
+
+        async function loadFavorites() {
+            const favs = await API.getFavorites();
+            favorites = new Set(favs.map(f => f.contact_id));
+        }
+
+
+        // Create service card HTML
+        function createServiceCard(service) {
+            const isFavorite = favorites.has(service.contact_id);
+            return `
+                <div class="service-card bg-white rounded-xl p-5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] transition-all duration-300 h-full flex flex-col border-2 border-transparent hover:-translate-y-[5px] hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:border-[#00a63e] max-md:w-full max-md:mx-auto max-sm:p-4" data-service-id="${service.contact_id}">
+                    <div class="flex justify-between items-center">
+                        <div class="h-[45px] w-[45px] p-2 rounded-lg flex items-center justify-center transition-all duration-300 [&_img]:w-full [&_img]:h-full [&_img]:object-contain" style="background-color: #ffe3e1">
+                            <img src="${service.image_path || '/static/assets/emergency.png'}" alt="${service.service_name}" onerror="this.onerror=null; this.src='/static/assets/emergency.png';">
+                        </div>
+                        <i class="cursor-pointer transition-all duration-300 ${isFavorite ? 'text-[#dc2626] animate-[heartBeat_0.3s_ease]' : 'text-gray-300'} hover:scale-110 hover:text-red-500 fa-solid fa-heart text-2xl" data-contact-id="${service.contact_id}"></i>
+                    </div>
+                    <h1 class="service-name font-bold mt-2">${service.service_name}</h1>
+                    <p class="text-[15px] mb-5">${service.category || 'Emergency'}</p>
+                    <h2 class="service-number font-bold text-2xl">${service.phone_number}</h2>
+                    <div class="inline-block py-1 px-3 rounded-md bg-gray-100 text-xs font-medium text-gray-700 mt-2">${service.category || 'All'}</div>
+                    <div class="flex mt-4 gap-2">
+                        <button class="copyBtn transition-all duration-300 border-2 border-[#00a63e] text-[#00a63e] bg-white font-semibold hover:bg-[#00a63e] hover:text-white hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,166,62,0.3)] max-sm:text-sm max-sm:p-2 btn btn-outline w-[105px] h-[30px] min-h-0"><i class="fa-solid fa-copy"></i> Copy</button>
+                        <!-- Use an anchor with tel: href so device dialers can be invoked directly. Sanitize phone number for href. -->
+                        <a href="tel:${String(service.phone_number).replace(/[^+\d]/g, '')}"
+                           data-phone="${service.phone_number}"
+                           class="call-button inline-flex items-center justify-center transition-all duration-300 bg-[#00a63e] text-white border-2 border-[#00a63e] font-semibold hover:opacity-90 hover:-translate-y-0.5 hover:shadow-[0_4px_8px_rgba(0,166,62,0.3)] max-sm:text-sm max-sm:p-2 btn w-[105px] h-[30px] min-h-0">
+                           <i class="fa-solid fa-phone"></i> Call
+                        </a>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Load and display services
+        async function loadServices() {
+            const loadingSpinner = document.getElementById('loadingSpinner');
+            const servicesGrid = document.getElementById('servicesGrid');
+            const noResults = document.getElementById('noResults');
+
+            try {
+                const response = await fetch(`${API.baseURL}/services`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+                allServices = await response.json();
+                loadingSpinner.style.display = 'none';
+
+                if (!allServices || allServices.length === 0) {
+                    noResults.style.display = 'block';
+                    return;
+                }
+
+                servicesGrid.innerHTML = allServices.map(service => createServiceCard(service)).join('');
+                servicesGrid.style.display = 'grid';
+                attachEventListeners();
+
+            } catch (error) {
+                console.error('Failed to load services:', error);
+                loadingSpinner.style.display = 'none';
+                servicesGrid.innerHTML = `<div class="col-span-full text-center py-10 bg-white rounded-lg p-6">
+                    <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                    <p class="text-red-600 text-lg font-semibold">Failed to load services</p>
+                    <p class="text-gray-600 mt-2">Error: ${error.message}</p>
+                    <button onclick="location.reload()" class="mt-4 btn bg-[#00a63e] text-white">Reload Page</button>
+                </div>`;
+                servicesGrid.style.display = 'grid';
+            }
+        }
+
+        // Attach event listeners to dynamic elements
+        function attachEventListeners() {
+            document.querySelectorAll('.fa-heart[data-contact-id]').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const contactId = parseInt(this.dataset.contactId);
+                    const isFavorite = favorites.has(contactId);
+
+                    try {
+                        if (isFavorite) {
+                            await API.removeFavorite(contactId);
+                            favorites.delete(contactId);
+                            // Update visual state
+                            this.classList.remove('text-[#dc2626]', 'animate-[heartBeat_0.3s_ease]');
+                            this.classList.add('text-gray-300');
+                        } else {
+                            await API.addFavorite(contactId);
+                            favorites.add(contactId);
+                            // Update visual state with heartbeat animation
+                            this.classList.remove('text-gray-300');
+                            this.classList.add('text-[#dc2626]', 'animate-[heartBeat_0.3s_ease]');
+                        }
+
+                        // no-op
+                    } catch (error) {
+                        console.error('Error toggling favorite:', error);
+                    }
+                });
+            });
+
+            // Robust copy function (replaced with user-provided implementation)
+            async function copy_2(ev, textToCopy) {
+                // navigator clipboard api needs a secure context (https)
+                if (navigator.clipboard && window.isSecureContext) {
+                    // navigator clipboard api method'
+                    await navigator.clipboard.writeText(textToCopy);
+                    return 1;
+                } else {
+                    // text area method
+                    let textArea = document.createElement("textarea");
+                    textArea.value = textToCopy;
+                    // make the textarea out of viewport
+                    textArea.style.position = "fixed";
+                    textArea.style.left = "-999999px";
+                    textArea.style.top = "-999999px";
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+
+                    let ok = 0;
+                    // here the magic happens
+                    if (document.execCommand('copy')) ok = 1;
+
+                    textArea.remove();
+                    return ok;
+
+                }
+            }
+
+            // Copy buttons (use copy_2 implementation)
+            document.querySelectorAll('.copyBtn').forEach(btn => {
+                btn.addEventListener('click', async function(ev) {
+                    const card = this.closest('.service-card');
+                    const numberElement = card.querySelector('.service-number');
+                    const number = numberElement ? numberElement.textContent.trim() : '';
+
+                    if (!number) {
+                        alert('No phone number found');
+                        return;
+                    }
+
+                    const result = await copy_2(ev, number);
+
+                    if (result === 1) {
+                        this.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+                        this.classList.add('bg-[#00a63e]', 'text-white');
+
+                        setTimeout(() => {
+                            this.innerHTML = '<i class="fa-solid fa-copy"></i> Copy';
+                            this.classList.remove('bg-[#00a63e]', 'text-white');
+                        }, 2000);
+
+                        // no-op
+                    } else {
+                        console.error('Copy failed with result:', result);
+                        alert('Failed to copy: ' + number);
+                    }
+                });
+            });
+
+            // Call buttons: handle anchors with tel: href. We record call history (server-side)
+            // before letting the browser navigate to the tel: link. Use navigator.sendBeacon or
+            // fetch with keepalive to avoid blocking navigation on mobile devices.
+            document.querySelectorAll('.call-button').forEach(btn => {
+                btn.addEventListener('click', async function (ev) {
+                    // If the element is an anchor, let default navigation happen after we send history.
+                    const anchor = this.tagName.toLowerCase() === 'a' ? this : this.closest('a.call-button');
+                    const card = this.closest('.service-card');
+                    const serviceId = card ? parseInt(card.dataset.serviceId) : null;
+                    const phoneRaw = anchor ? anchor.dataset.phone : (card ? card.querySelector('.service-number')?.textContent : '');
+                    const phoneForUI = phoneRaw ? phoneRaw.trim() : '';
+
+                    ev.preventDefault();
+
+                    // UI feedback
+                    const prevHTML = this.innerHTML;
+                    this.innerHTML = '<i class="fa-solid fa-phone-volume"></i> Calling...';
+                    this.classList.add('opacity-80');
+                    this.setAttribute('aria-disabled', 'true');
+
+                    // Prepare payload with enough info for server validation
+                    const payloadObj = {
+                        contact_id: serviceId,
+                        receiver_number: phoneForUI,
+                        start_time: new Date().toISOString()
+                    };
+
+                    // Try to send a non-blocking POST to record the call. Use fetch with keepalive if we have a token,
+                    // otherwise fall back to navigator.sendBeacon (no custom headers) or a fire-and-forget fetch.
+                    try {
+                        const token = (API && typeof API.getToken === 'function') ? API.getToken() : localStorage.getItem('token');
+                        const url = `${API.baseURL}/calls`;
+
+                        if (token) {
+                            // send with Authorization header; keepalive helps on mobile during navigation
+                            fetch(url, {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${token}`
+                                },
+                                body: JSON.stringify(payloadObj),
+                                keepalive: true,
+                                mode: 'same-origin'
+                            }).catch(() => {});
+                        } else if (navigator && typeof navigator.sendBeacon === 'function') {
+                            const blob = new Blob([JSON.stringify(payloadObj)], { type: 'application/json' });
+                            try { navigator.sendBeacon(url, blob); } catch (e) { /* ignore */ }
+                        } else {
+                            // fallback fire-and-forget
+                            fetch(`${API.baseURL}/calls`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payloadObj)
+                            }).catch(() => {});
+                        }
+                    } catch (e) {
+                        // ignore any errors — do not block dialer
+                    }
+
+                    // Small delay to allow beacon/keepalive to queue, then navigate to tel: link
+                    setTimeout(() => {
+                        if (anchor && anchor.href) {
+                            window.location.href = anchor.href;
+                        }
+
+                        // restore UI after a moment (navigation may happen immediately on mobile)
+                        setTimeout(() => {
+                            try {
+                                this.innerHTML = prevHTML;
+                                this.classList.remove('opacity-80');
+                                this.removeAttribute('aria-disabled');
+                            } catch (e) {}
+                        }, 2000);
+                    }, 150);
+                });
+            });
+
+        }
+
+        // Show notification helper
+        function showNotification(message, type = 'info') {
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                info: 'bg-blue-500',
+                warning: 'bg-orange-500'
+            };
+            const notification = document.createElement('div');
+            notification.className = `fixed top-20 right-4 ${colors[type] || colors.info} text-white px-6 py-3 rounded-lg shadow-lg z-50 animate-[fadeIn_0.3s_ease-out]`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.3s';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        // Chat functionality - smart live refresh with backoff
+        let currentSessionId = null;
+        let allChatSessions = [];
+        // Polling/backoff state
+        let historyPollTimer = null;
+        let historyPollInterval = 3000; // ms
+        const historyPollMin = 2000, historyPollMax = 12000;
+        let lastHistorySignature = '';
+        let inflightHistoryReq = false;
+
+        let messagesPollTimer = null;
+        let messagesPollInterval = 1500; // ms
+        const messagesPollMin = 1000, messagesPollMax = 8000;
+        let lastMessageTimestamp = null; // ISO string
+        let lastMessagesSignature = '';
+        let inflightMessagesReq = false;
+
+        // Pause polling when tab is hidden
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopHistoryPolling();
+                stopMessagesPolling();
+            } else {
+                if (!currentSessionId) startHistoryPolling();
+                else startMessagesPolling();
+            }
+        });
+
+        // Load chat history
+    async function loadChatHistory() {
+            try {
+        if (inflightHistoryReq) return;
+        inflightHistoryReq = true;
+        const sessions = await API.getMySessions();
+                allChatSessions = sessions;
+
+                const historyList = document.getElementById('chatHistoryList');
+                const emptyHistory = document.getElementById('emptyChatHistory');
+
+                if (sessions.length === 0) {
+                    historyList.classList.add('hidden');
+                    emptyHistory.classList.remove('hidden');
+                    historyList.innerHTML = ''; // Clear any stale items
+                    return;
+                }
+
+                // Build signature: id, status, updated_at
+                const sig = JSON.stringify(sessions.map(s => ({ i: s.session_id, st: s.status, u: s.updated_at || s.created_at })));
+                emptyHistory.classList.add('hidden');
+                historyList.classList.remove('hidden');
+
+                const forceInitialRender = historyList.childElementCount === 0;
+                if (sig === lastHistorySignature && !forceInitialRender) {
+                    // No changes -> backoff
+                    historyPollInterval = Math.min(historyPollMax, historyPollInterval + 500);
+                    return;
+                } else {
+                    // Changes -> reset backoff
+                    historyPollInterval = historyPollMin;
+                    lastHistorySignature = sig;
+                }
+
+                // Get current session IDs from API response
+                const currentSessionIds = new Set(sessions.map(s => s.session_id));
+
+                // Remove deleted sessions from DOM
+                const existingElements = historyList.querySelectorAll('[data-session-id]');
+                existingElements.forEach(el => {
+                    const sessionId = parseInt(el.getAttribute('data-session-id'));
+                    if (!currentSessionIds.has(sessionId)) {
+                        el.remove();
+                    }
+                });
+
+                historyList.innerHTML = sessions.map(session => {
+                    const statusColor = session.status === 'active' ? 'text-green-600' :
+                                       session.status === 'waiting' ? 'text-orange-600' :
+                                       'text-gray-500';
+                    const statusIcon = session.status === 'active' ? 'fa-comment-dots' :
+                                      session.status === 'waiting' ? 'fa-clock' :
+                                      'fa-check-circle';
+
+                    return `
+                        <div class="p-3 bg-white border border-gray-200 rounded-lg hover:shadow-md cursor-pointer transition" data-session-id="${session.session_id}" onclick="openChatSession(${session.session_id})">
+                            <div class="flex justify-between items-start">
+                                <div class="flex-1">
+                                    <div class="flex items-center gap-2 mb-1">
+                                        <i class="fa-solid ${statusIcon} ${statusColor} text-sm"></i>
+                                        <span class="text-xs font-semibold ${statusColor} uppercase">${session.status}</span>
+                                    </div>
+                                    ${session.helper_name ? `
+                                        <p class="text-sm font-medium">With: ${session.helper_name}</p>
+                                    ` : `
+                                        <p class="text-sm text-gray-500">Waiting for helper...</p>
+                                    `}
+                                    <p class="text-xs text-gray-400 mt-1">${new Date(session.created_at).toLocaleString()}</p>
+                                </div>
+                                <i class="fa-solid fa-chevron-right text-gray-400"></i>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('Error loading chat history:', error);
+            } finally {
+                inflightHistoryReq = false;
+            }
+        }
+
+        function startHistoryPolling() {
+            if (historyPollTimer) return;
+            const tick = async () => {
+                try { await loadChatHistory(); } catch {}
+                historyPollTimer = setTimeout(tick, historyPollInterval);
+            };
+            historyPollTimer = setTimeout(tick, 300);
+        }
+        function stopHistoryPolling() {
+            if (!historyPollTimer) return;
+            clearTimeout(historyPollTimer);
+            historyPollTimer = null;
+        }
+
+        // Open chat session
+        window.openChatSession = async function(sessionId) {
+            currentSessionId = sessionId;
+
+            // Hide history view, show chat interface
+            document.getElementById('chatHistoryView').classList.add('hidden');
+            document.getElementById('activeChatInterface').classList.remove('hidden');
+
+            // Load messages once and start polling
+            stopHistoryPolling();
+            lastMessagesSignature = '';
+            await loadMessages();
+            startMessagesPolling();
+        };
+
+        // Start new chat
+        document.getElementById('startChatBtn').addEventListener('click', async function() {
+            try {
+                const result = await API.createChatSession();
+                currentSessionId = result.session_id;
+
+                // Hide history view, show chat interface
+                document.getElementById('chatHistoryView').classList.add('hidden');
+                document.getElementById('activeChatInterface').classList.remove('hidden');
+                document.getElementById('chatStatus').textContent = 'Waiting for a helper...';
+                document.getElementById('chatMessages').innerHTML = '<div class="text-center text-gray-400 py-8">No messages yet. Start the conversation!</div>';
+
+                showNotification('Chat session created! You can start typing...', 'success');
+                stopHistoryPolling();
+                lastMessagesSignature = '';
+                startMessagesPolling();
+            } catch (error) {
+                console.error('Error starting chat:', error);
+                showNotification('Failed to start chat. Please try again.', 'error');
+            }
+        });
+
+        // Refresh messages button
+        document.getElementById('refreshMessagesBtn').addEventListener('click', async function() {
+            if (!currentSessionId) return;
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                await loadMessages();
+                showNotification('Messages refreshed', 'success');
+            } catch (error) {
+                showNotification('Failed to refresh messages', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-rotate-right"></i>';
+            }
+        });
+
+        // Back to chat history
+        document.getElementById('backToChatHistory').addEventListener('click', function() {
+            currentSessionId = null;
+
+            // Show history view, hide chat interface
+            document.getElementById('chatHistoryView').classList.remove('hidden');
+            document.getElementById('activeChatInterface').classList.add('hidden');
+
+            // Reload history and resume polling
+            loadChatHistory();
+            startHistoryPolling();
+        });
+
+        // Send message
+        document.getElementById('sendBtn').addEventListener('click', sendMessage);
+        document.getElementById('messageInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        async function sendMessage() {
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+
+            if (!message || !currentSessionId) return;
+
+            try {
+                await API.sendMessage(currentSessionId, message);
+                input.value = '';
+                // Reset backoff and fetch updates
+                messagesPollInterval = messagesPollMin;
+                await loadMessages();
+                showNotification('Message sent', 'success');
+            } catch (error) {
+                console.error('Error sending message:', error);
+                showNotification('Failed to send message', 'error');
+            }
+        }
+
+        // Simple message loading (full list + backoff)
+        async function loadMessages() {
+            if (!currentSessionId) return;
+
+            try {
+                const data = await API.getMessages(currentSessionId);
+                const messages = data.messages || data;
+                const container = document.getElementById('chatMessages');
+                const currentUser = getCurrentUser();
+
+                if (!messages || messages.length === 0) {
+                    container.innerHTML = '<div class="text-center text-gray-400 py-8">No messages yet. Start the conversation!</div>';
+                } else {
+                    container.innerHTML = messages.map((msg) => {
+                        const isOwn = msg.sender_id === currentUser.user_id;
+                        const safeMsg = escapeHTML(msg.message);
+                        return `
+                            <div class="flex ${isOwn ? 'justify-end' : 'justify-start'} mb-3">
+                                <div class="max-w-[80%] ${isOwn ? 'bg-[#00a63e] text-white' : 'bg-gray-200'} rounded-lg px-3 py-2 shadow-sm">
+                                    <p class="text-xs font-semibold mb-1">${msg.sender_name}</p>
+                                    <p class="text-sm break-words">${safeMsg}</p>
+                                    <p class="text-xs opacity-70 mt-1">${new Date(msg.created_at).toLocaleTimeString([], {hour: '2-digit', minute: '2-digit'})}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Always scroll to bottom after loading/appending
+                    setTimeout(() => {
+                        container.scrollTop = container.scrollHeight;
+                    }, 50);
+                }
+
+                // Update status
+                const sessions = await API.getMySessions();
+                const currentSession = sessions.find(s => s.session_id === currentSessionId);
+                if (currentSession) {
+                    if (currentSession.status === 'active') {
+                        document.getElementById('chatStatus').textContent = `Chatting with ${currentSession.helper_name}`;
+                    } else if (currentSession.status === 'waiting') {
+                        document.getElementById('chatStatus').textContent = 'Waiting for a helper...';
+                    }
+                }
+
+                // Update backoff based on count + last timestamp signature
+                const sig = (() => {
+                    if (!Array.isArray(messages) || messages.length === 0) return `0-none`;
+                    const last = messages[messages.length - 1];
+                    return `${messages.length}-${last.created_at}`;
+                })();
+                if (sig === lastMessagesSignature) {
+                    messagesPollInterval = Math.min(messagesPollMax, messagesPollInterval + 500);
+                } else {
+                    messagesPollInterval = messagesPollMin;
+                    lastMessagesSignature = sig;
+                }
+            } catch (error) {
+                console.error('Error loading messages:', error);
+                showNotification('Failed to load messages', 'error');
+            }
+        }
+
+        function startMessagesPolling() {
+            if (messagesPollTimer || !currentSessionId) return;
+            const tick = async () => {
+                if (inflightMessagesReq) { messagesPollTimer = setTimeout(tick, messagesPollInterval); return; }
+                try {
+                    inflightMessagesReq = true;
+                    await loadMessages();
+                } finally {
+                    inflightMessagesReq = false;
+                    messagesPollTimer = setTimeout(tick, messagesPollInterval);
+                }
+            };
+            messagesPollTimer = setTimeout(tick, 300);
+        }
+        function stopMessagesPolling() {
+            if (!messagesPollTimer) return;
+            clearTimeout(messagesPollTimer);
+            messagesPollTimer = null;
+        }
+
+        // XSS Protection
+        function escapeHTML(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        // End chat session
+        document.getElementById('endChatBtn').addEventListener('click', async function() {
+            if (!currentSessionId) return;
+
+            if (!confirm('Are you sure you want to end this chat session?')) return;
+
+            try {
+                await API.closeSession(currentSessionId);
+                currentSessionId = null;
+
+                // Reset UI - Show history view, hide chat interface
+                document.getElementById('chatHistoryView').classList.remove('hidden');
+                document.getElementById('activeChatInterface').classList.add('hidden');
+                document.getElementById('chatMessages').innerHTML = '';
+                document.getElementById('messageInput').value = '';
+                document.getElementById('chatStatus').textContent = '';
+
+                // Reload chat history
+                stopMessagesPolling();
+                lastMessagesSignature = '';
+                await loadChatHistory();
+                startHistoryPolling();
+
+                showNotification('Chat session ended and deleted', 'success');
+            } catch (error) {
+                console.error('Error ending chat:', error);
+                showNotification('Failed to end chat session', 'error');
+            }
+        });
+
+        // Check for existing session on load
+        async function checkExistingSession() {
+            try {
+                // Just load the chat history
+                await loadChatHistory();
+                startHistoryPolling();
+            } catch (error) {
+                console.error('Error checking existing session:', error);
+            }
+        }
+
+        // Logout
+        document.getElementById('logoutBtn').addEventListener('click', async function() {
+            if (confirm('Are you sure you want to logout?')) {
+                await API.logout();
+            }
+        });
+
+        // Initialize - Load everything in proper sequence
+        async function init() {
+            try {
+                // Load favorites and chat session state
+                await Promise.all([
+                    loadFavorites().catch(err => console.error('Favorites error:', err)),
+                    checkExistingSession().catch(err => console.error('Session check error:', err))
+                ]);
+
+                // Then load and render services
+                await loadServices();
+            } catch (error) {
+                console.error('Initialization error:', error);
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
