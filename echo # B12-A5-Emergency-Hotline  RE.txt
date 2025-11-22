@@ -1,7 +1,0 @@
-echo "# B12-A5-Emergency-Hotline" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
-git branch -M main
-git remote add origin https://github.com/arafat-sani/B12-A5-Emergency-Hotline.git
-git push -u origin main
