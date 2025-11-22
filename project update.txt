@@ -1,7 +1,0 @@
--too static
--add admin control -  can add new services - assign roles to response team
--user - normal user -  response team
--website can function on it's own without changing html code
--add message, direct call, live location, etc
--search directly
--interactive ui
