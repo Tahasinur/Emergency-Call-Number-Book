@@ -4,7 +4,8 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Emergency Hotline - Dashboard</title>
-    <link rel="shortcut icon" href="/static/assets/logo.png" type="image/x-icon">
+    <link rel="shortcut icon" href="static/assets/logo.png" type="image/x-icon">
+
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
@@ -29,7 +30,8 @@
     <!-- navbar start here -->
     <nav class="flex justify-between items-center w-11/12 m-auto mt-3 transition-all duration-300 max-md:flex-col max-md:gap-3">
       <div class="flex justify-center items-center gap-2">
-        <img class="h-[50px] w-[50px]" src="/static/assets/logo.png" alt="Emergency Service Logo" />
+        <img class="h-[50px] w-[50px]" src="static/assets/logo.png" alt="Emergency Service Logo" />
+
         <h1 class="font-extrabold text-[#014e36] text-[17px]">
           Emergency <br />
           Service
@@ -46,7 +48,8 @@
 
     <!-- hero-section-start -->
     <div class="bg-gradient-to-r from-[#065f46] via-[#065F2E] to-[#065f46] w-full flex flex-col justify-center items-center mt-5 py-8 p-4 text-center shadow-[0_4px_6px_rgba(0,0,0,0.1)] max-md:[&_h1]:text-2xl max-md:[&_p]:text-sm max-md:[&_p]:px-4">
-        <img class="h-[70px] w-[70px] mt-5" src="/static/assets/logo.png" alt="Emergency Service Logo">
+        <img class="h-[70px] w-[70px] mt-5" src="static/assets/logo.png" alt="Emergency Service Logo">
+
         <h1 class="md:text-[30px] text-[20px] text-white font-semibold">Emergency Service Directory</h1>
         <p class="text-white mb-5 text-center px-4">Government Emergency Services at Your Fingertip</p>
     </div>
@@ -135,11 +138,13 @@
         </main>
     </div>
 
-    <script src="/static/js/api.js"></script>
+    <script src="static/js/api.js"></script>
+
     <script>
         // Check authentication
         if (!isAuthenticated()) {
-            window.location.href = '/login';
+            window.location.href = 'index.html';
+
         }
 
         const currentUser = getCurrentUser();
@@ -163,7 +168,8 @@
                 <div class="service-card bg-white rounded-xl p-5 shadow-[0_4px_6px_-1px_rgba(0,0,0,0.1),0_2px_4px_-1px_rgba(0,0,0,0.06)] transition-all duration-300 h-full flex flex-col border-2 border-transparent hover:-translate-y-[5px] hover:shadow-[0_10px_15px_-3px_rgba(0,0,0,0.1),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:border-[#00a63e] max-md:w-full max-md:mx-auto max-sm:p-4" data-service-id="${service.contact_id}">
                     <div class="flex justify-between items-center">
                         <div class="h-[45px] w-[45px] p-2 rounded-lg flex items-center justify-center transition-all duration-300 [&_img]:w-full [&_img]:h-full [&_img]:object-contain" style="background-color: #ffe3e1">
-                            <img src="${service.image_path || '/static/assets/emergency.png'}" alt="${service.service_name}" onerror="this.onerror=null; this.src='/static/assets/emergency.png';">
+                            <img src="${service.image_path || 'static/assets/emergency.png'}" alt="${service.service_name}" onerror="this.onerror=null; this.src='static/assets/emergency.png';">
+
                         </div>
                         <i class="cursor-pointer transition-all duration-300 ${isFavorite ? 'text-[#dc2626] animate-[heartBeat_0.3s_ease]' : 'text-gray-300'} hover:scale-110 hover:text-red-500 fa-solid fa-heart text-2xl" data-contact-id="${service.contact_id}"></i>
                     </div>

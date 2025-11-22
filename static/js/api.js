@@ -52,7 +52,7 @@ class EmergencyAPI {
       await this.request("/auth/logout", { method: "POST" });
     } finally {
       localStorage.clear();
-      window.location.href = "/login";
+      window.location.href = "index.html";
     }
   }
 
@@ -85,28 +85,33 @@ class EmergencyAPI {
     const response = await fetch(`${this.baseURL}/admin/services`, {
       method: "POST",
       headers: {
-        "Authorization": `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
-      body: formData
+      body: formData,
     });
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    if (!response.ok)
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
     return data;
   }
 
   async updateServiceWithImage(serviceId, formData) {
     const token = this.getToken();
-    const response = await fetch(`${this.baseURL}/admin/services/${serviceId}`, {
-      method: "PUT",
-      headers: {
-        "Authorization": `Bearer ${token}`
-      },
-      body: formData
-    });
+    const response = await fetch(
+      `${this.baseURL}/admin/services/${serviceId}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        body: formData,
+      }
+    );
 
     const data = await response.json();
-    if (!response.ok) throw new Error(data.error || `HTTP error! status: ${response.status}`);
+    if (!response.ok)
+      throw new Error(data.error || `HTTP error! status: ${response.status}`);
     return data;
   }
 
@@ -176,7 +181,6 @@ class EmergencyAPI {
     });
   }
 
-  
   // Favorites
   async addFavorite(contactId) {
     return this.request("/favorites", {
@@ -211,7 +215,8 @@ function getCurrentUser() {
 // Helper function to require authentication
 function requireAuth() {
   if (!isAuthenticated()) {
-    window.location.href = "/login";
+    window.location.href = "index.html";
+
     return false;
   }
   return true;

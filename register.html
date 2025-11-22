@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Emergency Hotline</title>
-    <link rel="shortcut icon" href="/static/assets/logo.png" type="image/x-icon">
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="shortcut icon" href="static/assets/logo.png" type="image/x-icon">
+    <link rel="stylesheet" href="static/css/style.css">
+
     <link href="https://cdn.jsdelivr.net/npm/daisyui@5" rel="stylesheet" type="text/css" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.0/css/all.min.css" />
@@ -15,7 +16,8 @@
     <div class="w-full max-w-md p-8">
         <!-- Logo and Title -->
         <div class="text-center mb-8">
-            <img src="/static/assets/logo.png" alt="Logo" class="h-20 w-20 mx-auto mb-4">
+            <img src="static/assets/logo.png" alt="Logo" class="h-20 w-20 mx-auto mb-4">
+
             <h1 class="text-3xl font-bold text-[#014e36]">Create Account</h1>
             <p class="text-gray-600 mt-2">Join Emergency Hotline System</p>
         </div>
@@ -110,13 +112,15 @@
             <div class="mt-6 text-center">
                 <p class="text-sm text-gray-600">
                     Already have an account?
-                    <a href="/login" class="text-[#00a63e] hover:text-[#008c35] font-semibold">Sign in here</a>
+                    <a href="index.html" class="text-[#00a63e] hover:text-[#008c35] font-semibold">Sign in here</a>
+
                 </p>
             </div>
         </div>
     </div>
 
-    <script src="/static/js/api.js"></script>
+    <script src="static/js/api.js"></script>
+
     <script>
         // Toggle password visibility
         document.getElementById('togglePassword').addEventListener('click', function() {
@@ -203,8 +207,9 @@
 
                 // Redirect to login page
                 setTimeout(() => {
-                    window.location.href = '/login';
+                    window.location.href = 'index.html';
                 }, 2000);
+
 
             } catch (error) {
                 // Show error message
@@ -219,8 +224,9 @@
 
         // Check if already logged in
         if (localStorage.getItem('token')) {
-            window.location.href = '/dashboard';
+            window.location.href = 'dashboard.html';
         }
+
     </script>
 </body>
 </html>

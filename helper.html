@@ -7,14 +7,16 @@
     <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.14/dist/full.min.css" rel="stylesheet" type="text/css" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="static/css/style.css">
+
 </head>
 <body class="bg-gray-50">
     <!-- Navbar -->
     <nav class="bg-white shadow-md fixed top-0 w-full z-50">
         <div class="w-11/12 m-auto flex justify-between items-center py-4">
             <div class="flex items-center gap-3">
-                <img src="/static/assets/logo.png" alt="Logo" class="h-10 w-10">
+                <img src="static/assets/logo.png" alt="Logo" class="h-10 w-10">
+
                 <h1 class="text-lg md:text-xl font-bold text-[#014e36]">Helper Dashboard</h1>
             </div>
             <div class="flex items-center gap-3">
@@ -139,17 +141,20 @@
         </div>
     </main>
 
-    <script src="/static/js/api.js"></script>
+    <script src="static/js/api.js"></script>
+
     <script>
         // Check authentication and role
         if (!requireAuth()) {
-            window.location.href = '/login';
+            window.location.href = 'index.html';
+
         }
 
         const currentUser = getCurrentUser();
         if (currentUser.role !== 'helper') {
             alert('Access denied. Helper role required.');
-            window.location.href = '/login';
+            window.location.href = 'index.html';
+
         }
 
         document.getElementById('helperName').textContent = currentUser.username;
